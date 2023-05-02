@@ -1,4 +1,5 @@
 using ClientOnboarding.Services;
+using ClientOnboarding.Workflow;
 using ResumableFunctions.AspNetService;
 using ResumableFunctions.Handler.InOuts;
 
@@ -13,6 +14,7 @@ builder.Services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ClientOnboardingService>();
+//builder.Services.AddScoped<ClientOnboardingWorkflow>();
 
 var app = builder.Build();
 app.ScanCurrentService();
