@@ -2,6 +2,7 @@ using ClientOnboarding.Services;
 using ClientOnboarding.Workflow;
 using ResumableFunctions.AspNetService;
 using ResumableFunctions.Handler.InOuts;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +14,7 @@ builder.Services
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<ClientOnboardingService>();
+builder.Services.AddTransient<IClientOnboardingService, ClientOnboardingService>();
 //builder.Services.AddScoped<ClientOnboardingWorkflow>();
 
 var app = builder.Build();
@@ -30,5 +31,15 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.Run();
+try
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    Debug.Write(ex);
+    Console.WriteLine(ex);
+    Console.WriteLine(ex.Message);
+    Console.WriteLine(ex.StackTrace);
+	throw;
+}
