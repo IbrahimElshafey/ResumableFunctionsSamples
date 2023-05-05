@@ -11,9 +11,9 @@ namespace ClientOnboarding.Workflow
     {
         private readonly IClientOnboardingService service;
 
-        public ClientOnboardingWorkflow()
+        public ClientOnboardingWorkflow(IClientOnboardingService service)
         {
-            service = CurrentServiceProvider.GetService<IClientOnboardingService>();
+            this.service = service;
         }
 
         [ResumableFunctionEntryPoint("ClientOnboardingWorkflow.StartClientOnboardingWorkflow")]

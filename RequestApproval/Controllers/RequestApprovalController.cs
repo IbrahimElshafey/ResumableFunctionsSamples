@@ -29,10 +29,10 @@ namespace RequestApproval.Controllers
     {
         private readonly RequestApprovalService service;
 
-        public RequestApprovalWorkflow()
+        public RequestApprovalWorkflow(RequestApprovalService service)
         {
+            this.service = service;
             //passing dependancies in constructor have a bug that I work on
-            service = CurrentServiceProvider.GetService<RequestApprovalService>();
         }
 
         public Request UserRequest { get; set; }
