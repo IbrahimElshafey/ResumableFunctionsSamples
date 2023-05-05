@@ -11,9 +11,9 @@ namespace ClientOnboarding.Workflow
     {
         private readonly IClientOnboardingService service;
 
-        public ClientOnboardingWorkflow(IClientOnboardingService service)
+        public ClientOnboardingWorkflow()
         {
-            this.service = service;
+            service = CurrentServiceProvider.GetService<IClientOnboardingService>();
         }
 
         [ResumableFunctionEntryPoint("ClientOnboardingWorkflow.StartClientOnboardingWorkflow")]
@@ -36,7 +36,7 @@ namespace ClientOnboarding.Workflow
                 Console.WriteLine(MeetingResult);
             }
 
-            Console.WriteLine("User Registration Done");
+            Console.WriteLine("Client Onboarding Workflow Done");
         }
 
         private MethodWait<RegistrationForm, RegistrationResult> WaitUserRegistration()
