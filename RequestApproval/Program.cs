@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
     .AddControllers()
-    .AddResumableFunctions(new ResumableFunctionsSettings().UseSqlServer());
+    .AddResumableFunctions(new SqlServerResumableFunctionsSettings());
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -16,7 +16,7 @@ builder.Services.AddTransient<RequestApprovalService>();
 builder.Services.AddTransient<RequestApprovalWorkflow>();
 
 var app = builder.Build();
-app.ScanCurrentService();
+app.RegisterCurrentService();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

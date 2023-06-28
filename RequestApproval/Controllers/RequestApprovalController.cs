@@ -91,7 +91,7 @@ namespace RequestApproval.Controllers
 
         }
 
-        [WaitMethod("RequestApproval.UserSubmitRequest")]
+        [PushCall("RequestApproval.UserSubmitRequest")]
         public bool UserSubmitRequest(Request request)
         {
             return true;
@@ -103,7 +103,7 @@ namespace RequestApproval.Controllers
             return taskId;
         }
 
-        [WaitMethod("RequestApproval.ManagerApproval")]
+        [PushCall("RequestApproval.ManagerApproval")]
         public int ManagerApproval(ApproveRequestArgs input)
         {
             var approvalId = Random.Shared.Next();
