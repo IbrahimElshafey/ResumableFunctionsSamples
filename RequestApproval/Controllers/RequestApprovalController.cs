@@ -1,4 +1,3 @@
-using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using ResumableFunctions.Handler;
 using ResumableFunctions.Handler.Attributes;
@@ -35,12 +34,11 @@ namespace RequestApproval.Controllers
     public class RequestApprovalWorkflow : ResumableFunction
     {
         private const string WaitSubmitRequest = "Wait User Submit Request";
-        private readonly RequestApprovalService service;
+        private RequestApprovalService _service;
 
-        public RequestApprovalWorkflow(RequestApprovalService service)
+        public void SetDependencies(RequestApprovalService service)
         {
-            this.service = service;
-            //passing dependancies in constructor have a bug that I work on
+            _service = service;
         }
 
         public Request UserRequest { get; set; }
@@ -51,18 +49,18 @@ namespace RequestApproval.Controllers
         internal async IAsyncEnumerable<Wait> RequestApprovalFlow()
         {
             yield return WaitUserSubmitRequest();
-            ManagerApprovalTaskId = service.AskManagerApproval(UserRequest.Id);
+            ManagerApprovalTaskId = _service.AskManagerApproval(UserRequest.Id);
             yield return WaitManagerApproval();
             switch (ManagerApprovalResult.Decision)
             {
                 case "Accept":
-                    service.InformUserAboutAccept(UserRequest.Id);
+                    _service.InformUserAboutAccept(UserRequest.Id);
                     break;
                 case "Reject":
-                    service.InformUserAboutReject(UserRequest.Id);
+                    _service.InformUserAboutReject(UserRequest.Id);
                     break;
                 case "MoreInfo":
-                    service.AskUserForMoreInfo(UserRequest.Id, ManagerApprovalResult.Message);
+                    _service.AskUserForMoreInfo(UserRequest.Id, ManagerApprovalResult.Message);
                     yield return GoBackTo<Request, bool>(WaitSubmitRequest, (request, result) => request.Id == UserRequest.Id);
                     break;
                 default: throw new ArgumentException("Allowed values for decision are one of(Accept,Reject,MoreInfo)");
@@ -72,25 +70,20 @@ namespace RequestApproval.Controllers
 
         private Wait WaitUserSubmitRequest()
         {
-            return Wait<Request, bool>(WaitSubmitRequest, service.UserSubmitRequest)
+            return Wait<Request, bool>(WaitSubmitRequest, _service.UserSubmitRequest)
                     .MatchIf((request, result) => request.Id > 0)
                     .SetData((request, result) => UserRequest == request);
         }
 
         private Wait WaitManagerApproval()
         {
-            return Wait<ApproveRequestArgs, int>("Wait Manager Approval", service.ManagerApproval)
+            return Wait<ApproveRequestArgs, int>("Wait Manager Approval", _service.ManagerApproval)
                     .MatchIf((approveRequestArgs, approvalId) => approvalId > 0 && approveRequestArgs.TaskId == ManagerApprovalTaskId)
                     .SetData((approveRequestArgs, approvalId) => ManagerApprovalResult == approveRequestArgs);
         }
     }
     public class RequestApprovalService
     {
-        public RequestApprovalService()
-        {
-
-        }
-
         [PushCall("RequestApproval.UserSubmitRequest")]
         public bool UserSubmitRequest(Request request)
         {
