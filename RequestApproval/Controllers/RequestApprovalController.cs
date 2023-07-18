@@ -31,7 +31,7 @@ namespace RequestApproval.Controllers
         }
 
     }
-    public class RequestApprovalWorkflow : ResumableFunction
+    public class RequestApprovalWorkflow : ResumableFunctionsContainer
     {
         private const string WaitSubmitRequest = "Wait User Submit Request";
         private RequestApprovalService _service;
@@ -70,14 +70,14 @@ namespace RequestApproval.Controllers
 
         private Wait WaitUserSubmitRequest()
         {
-            return Wait<Request, bool>(WaitSubmitRequest, _service.UserSubmitRequest)
+            return Wait<Request, bool>(_service.UserSubmitRequest, WaitSubmitRequest)
                     .MatchIf((request, result) => request.Id > 0)
                     .SetData((request, result) => UserRequest == request);
         }
 
         private Wait WaitManagerApproval()
         {
-            return Wait<ApproveRequestArgs, int>("Wait Manager Approval", _service.ManagerApproval)
+            return Wait<ApproveRequestArgs, int>(_service.ManagerApproval, "Wait Manager Approval")
                     .MatchIf((approveRequestArgs, approvalId) => approvalId > 0 && approveRequestArgs.TaskId == ManagerApprovalTaskId)
                     .SetData((approveRequestArgs, approvalId) => ManagerApprovalResult == approveRequestArgs);
         }
