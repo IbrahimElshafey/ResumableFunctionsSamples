@@ -7,8 +7,8 @@ namespace RequestApproval.Controllers
     public class RequestApprovalController : ControllerBase
     {
         private readonly ILogger<RequestApprovalController> _logger;
-        private readonly RequestApprovalService _service;
-        public RequestApprovalController(ILogger<RequestApprovalController> logger, RequestApprovalService service)
+        private readonly IRequestApprovalService _service;
+        public RequestApprovalController(ILogger<RequestApprovalController> logger, IRequestApprovalService service)
         {
             _logger = logger;
             _service = service;
@@ -17,11 +17,7 @@ namespace RequestApproval.Controllers
         [HttpPost(nameof(UserSubmitRequest))]
         public bool UserSubmitRequest(Request request)
         {
-            if (_service.SubmitRequest(request))
-            {
-                request.ManagerApprovalTaskId = _service.AskManagerApproval(request.Id);
-            }
-            return false;
+            return _service.SubmitRequest(request);
         }
 
         [HttpPost(nameof(ManagerApproval))]
@@ -32,29 +28,30 @@ namespace RequestApproval.Controllers
         }
 
     }
-    
-    public class RequestApprovalService
+
+    public class RequestApprovalService : IRequestApprovalService
     {
         private static List<Request> requests = new();
 
         public bool SubmitRequest(Request request)
         {
-            Console.WriteLine($"Request `{request.Id}` submitted.");
-            if(request.InEditMode)
+            if (requests.Any(x => x.Id == request.Id))
             {
-                request.ManagerApprovalTaskId = AskManagerApproval(request.Id);
+                Console.WriteLine($"Request `{request.Id}` re-submitted.");
             }
             else
             {
+                Console.WriteLine($"Request `{request.Id}` submitted.");
                 requests.Add(request);
             }
+            request.ManagerApprovalTaskId = AskManagerApproval(request.Id);
             return true;
         }
 
         public int AskManagerApproval(int requestId)
         {
             Console.WriteLine($"Ask manager to approve request `{requestId}`");
-            return Random.Shared.Next() + requestId;//taskId
+            return requestId + 10;//taskId
         }
 
         public void ManagerApproval(ApproveRequestArgs input)
@@ -65,9 +62,11 @@ namespace RequestApproval.Controllers
             {
                 case "Accept":
                     InformUserAboutAccept(request.Id);
+                    Console.WriteLine("RequestApprovalFlow Ended");//this line may be another process
                     break;
                 case "Reject":
                     InformUserAboutReject(request.Id);
+                    Console.WriteLine("RequestApprovalFlow Ended");//this line may be another process
                     break;
                 case "MoreInfo":
                     AskUserForMoreInfo(request.Id, input.Message);
@@ -75,7 +74,7 @@ namespace RequestApproval.Controllers
                 default:
                     throw new ArgumentException("Allowed values for decision are one of(Accept,Reject,MoreInfo)");
             }
-            Console.WriteLine("RequestApprovalFlow Ended");//this line may be another process
+
         }
 
         internal void InformUserAboutAccept(int id)
@@ -94,9 +93,6 @@ namespace RequestApproval.Controllers
         {
             Console.WriteLine($"Ask user for more info about request `{id}`");
             //Send a message to the request owner
-            //Set request in edit mode
-            var request = requests.First(x => x.Id == id);
-            request.InEditMode = true;
             //some other code
         }
     }
@@ -105,7 +101,6 @@ namespace RequestApproval.Controllers
         public int Id { get; set; }
         public string SomeContent { get; set; }
         public int ManagerApprovalTaskId { get; set; }
-        public bool InEditMode { get; internal set; }
     }
 
     public class ApproveRequestArgs

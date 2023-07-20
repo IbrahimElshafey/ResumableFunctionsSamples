@@ -11,9 +11,9 @@ namespace RequestApproval.Controllers
     public class RequestApprovalController : ControllerBase
     {
         private readonly ILogger<RequestApprovalController> _logger;
-        private readonly RequestApprovalService service;
+        private readonly IRequestApprovalService service;
 
-        public RequestApprovalController(ILogger<RequestApprovalController> logger, RequestApprovalService service)
+        public RequestApprovalController(ILogger<RequestApprovalController> logger, IRequestApprovalService service)
         {
             _logger = logger;
             this.service = service;
@@ -35,9 +35,9 @@ namespace RequestApproval.Controllers
     public class RequestApprovalWorkflow : ResumableFunctionsContainer
     {
         private const string WaitSubmitRequest = "Wait User Submit Request";
-        private RequestApprovalService _service;
+        private IRequestApprovalService _service;
 
-        public void SetDependencies(RequestApprovalService service)
+        public void SetDependencies(IRequestApprovalService service)
         {
             _service = service;
         }
@@ -50,8 +50,13 @@ namespace RequestApproval.Controllers
         internal async IAsyncEnumerable<Wait> RequestApprovalFlow()
         {
             yield return WaitUserSubmitRequest();
+
+            if (ManagerApprovalTaskId != default)
+                Console.WriteLine($"Request `{UserRequest.Id}` re-submitted.");
+
             ManagerApprovalTaskId = _service.AskManagerApproval(UserRequest.Id);
             yield return WaitManagerApproval();
+
             switch (ManagerApprovalResult.Decision)
             {
                 case "Accept":
@@ -66,6 +71,7 @@ namespace RequestApproval.Controllers
                     break;
                 default: throw new ArgumentException("Allowed values for decision are one of(Accept,Reject,MoreInfo)");
             }
+
             await Task.Delay(100);
             Console.WriteLine("RequestApprovalFlow Ended");
         }
@@ -84,7 +90,7 @@ namespace RequestApproval.Controllers
                     .SetData((approveRequestArgs, approvalId) => ManagerApprovalResult == approveRequestArgs);
         }
     }
-    public class RequestApprovalService
+    public class RequestApprovalService : IRequestApprovalService
     {
         [PushCall("RequestApproval.UserSubmitRequest")]
         public bool UserSubmitRequest(Request request)
@@ -96,7 +102,7 @@ namespace RequestApproval.Controllers
         public int AskManagerApproval(int requestId)
         {
             Console.WriteLine($"Ask manager to approve request `{requestId}`");
-            return Random.Shared.Next() + requestId;//taskId
+            return requestId + 10;//taskId
         }
 
         [PushCall("RequestApproval.ManagerApproval")]
@@ -106,19 +112,19 @@ namespace RequestApproval.Controllers
             return Random.Shared.Next();//approval id
         }
 
-        internal void InformUserAboutAccept(int id)
+        public void InformUserAboutAccept(int id)
         {
             //some code
             Console.WriteLine($"Inform user about accept request `{id}`");
         }
 
-        internal void InformUserAboutReject(int id)
+        public void InformUserAboutReject(int id)
         {
             //some code
             Console.WriteLine($"Inform user about reject request `{id}`");
         }
 
-        internal void AskUserForMoreInfo(int id, string message)
+        public void AskUserForMoreInfo(int id, string message)
         {
             //some code
             Console.WriteLine($"Ask user for more info about request `{id}`");

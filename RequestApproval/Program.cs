@@ -9,13 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddControllers()
     .AddResumableFunctions(
-    new SqlServerResumableFunctionsSettings(null, "RequestApprovalWaitsDb")
+    new SqlServerResumableFunctionsSettings(null, "RequestApprovalWaitsTest")
     .SetCurrentServiceUrl("https://localhost:7003"));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddTransient<RequestApprovalService>();
-builder.Services.AddTransient<RequestApprovalWorkflow>();
+builder.Services.AddScoped<IRequestApprovalService, RequestApprovalService>();
+builder.Services.AddScoped<RequestApprovalWorkflow>();
 
 var app = builder.Build();
 app.UseResumableFunctions();
