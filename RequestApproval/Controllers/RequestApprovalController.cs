@@ -135,7 +135,6 @@ namespace RequestApproval.Controllers
         public int Id { get; set; }
         public string SomeContent { get; set; }
     }
-
     public class ApproveRequestArgs
     {
         public int TaskId { get; set; }

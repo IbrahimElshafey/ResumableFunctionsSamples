@@ -37,7 +37,9 @@ namespace RequestApproval.Controllers
         {
             if (requests.Any(x => x.Id == request.Id))
             {
+                //Must be in edit mode
                 Console.WriteLine($"Request `{request.Id}` re-submitted.");
+                //Update request
             }
             else
             {
@@ -48,7 +50,7 @@ namespace RequestApproval.Controllers
             return true;
         }
 
-        public int AskManagerApproval(int requestId)
+        private int AskManagerApproval(int requestId)
         {
             Console.WriteLine($"Ask manager to approve request `{requestId}`");
             return requestId + 10;//taskId
@@ -77,19 +79,19 @@ namespace RequestApproval.Controllers
 
         }
 
-        internal void InformUserAboutAccept(int id)
+        private void InformUserAboutAccept(int id)
         {
             //some code
             Console.WriteLine($"Inform user about accept request `{id}`");
         }
 
-        internal void InformUserAboutReject(int id)
+        private void InformUserAboutReject(int id)
         {
             //some code
             Console.WriteLine($"Inform user about reject request `{id}`");
         }
 
-        internal void AskUserForMoreInfo(int id, string message)
+        private void AskUserForMoreInfo(int id, string message)
         {
             Console.WriteLine($"Ask user for more info about request `{id}`");
             //Send a message to the request owner
@@ -101,6 +103,7 @@ namespace RequestApproval.Controllers
         public int Id { get; set; }
         public string SomeContent { get; set; }
         public int ManagerApprovalTaskId { get; set; }
+        //public bool CanUserEdit { get; set; }
     }
 
     public class ApproveRequestArgs
