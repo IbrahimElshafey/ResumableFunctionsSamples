@@ -4,7 +4,9 @@ VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClientOnboarding", "ClientOnboarding\ClientOnboarding.csproj", "{1CBECB5E-F952-4063-8C95-152539384703}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestApproval", "RequestApproval\RequestApproval.csproj", "{DAE086FE-52F6-4263-87F5-2BB719219249}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RequestApproval", "RequestApproval\RequestApproval.csproj", "{DAE086FE-52F6-4263-87F5-2BB719219249}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestApprovalNormal", "RequestApprovalNormal\RequestApprovalNormal.csproj", "{FC7E850F-4611-4179-8738-ABF4E8C3560E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +22,10 @@ Global
 		{DAE086FE-52F6-4263-87F5-2BB719219249}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAE086FE-52F6-4263-87F5-2BB719219249}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAE086FE-52F6-4263-87F5-2BB719219249}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FC7E850F-4611-4179-8738-ABF4E8C3560E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FC7E850F-4611-4179-8738-ABF4E8C3560E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FC7E850F-4611-4179-8738-ABF4E8C3560E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FC7E850F-4611-4179-8738-ABF4E8C3560E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
