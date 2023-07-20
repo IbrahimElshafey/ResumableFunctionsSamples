@@ -1,3 +1,4 @@
+using Azure.Core;
 using Microsoft.AspNetCore.Mvc;
 using ResumableFunctions.Handler;
 using ResumableFunctions.Handler.Attributes;
@@ -65,6 +66,7 @@ namespace RequestApproval.Controllers
                     break;
                 default: throw new ArgumentException("Allowed values for decision are one of(Accept,Reject,MoreInfo)");
             }
+            await Task.Delay(100);
             Console.WriteLine("RequestApprovalFlow Ended");
         }
 
@@ -87,35 +89,39 @@ namespace RequestApproval.Controllers
         [PushCall("RequestApproval.UserSubmitRequest")]
         public bool UserSubmitRequest(Request request)
         {
+            Console.WriteLine($"Request `{request.Id}` submitted.");
             return true;
         }
 
         public int AskManagerApproval(int requestId)
         {
-            var taskId = Random.Shared.Next() + requestId;
-            return taskId;
+            Console.WriteLine($"Ask manager to approve request `{requestId}`");
+            return Random.Shared.Next() + requestId;//taskId
         }
 
         [PushCall("RequestApproval.ManagerApproval")]
         public int ManagerApproval(ApproveRequestArgs input)
         {
-            var approvalId = Random.Shared.Next();
-            return approvalId;
+            Console.WriteLine($"Manager approval for task `{input.TaskId}`");
+            return Random.Shared.Next();//approval id
         }
 
         internal void InformUserAboutAccept(int id)
         {
             //some code
+            Console.WriteLine($"Inform user about accept request `{id}`");
         }
 
         internal void InformUserAboutReject(int id)
         {
             //some code
+            Console.WriteLine($"Inform user about reject request `{id}`");
         }
 
         internal void AskUserForMoreInfo(int id, string message)
         {
             //some code
+            Console.WriteLine($"Ask user for more info about request `{id}`");
         }
     }
     public class Request
