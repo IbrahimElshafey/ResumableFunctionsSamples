@@ -6,6 +6,7 @@ namespace RequestApproval.Controllers
     {
         bool UserSubmitRequest(Request request);
         int AskManagerApproval(int requestId);
+
         int ManagerApproval(ApproveRequestArgs input);
         void InformUserAboutAccept(int id);
         void InformUserAboutReject(int id);

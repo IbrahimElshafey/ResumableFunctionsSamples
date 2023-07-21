@@ -1,4 +1,6 @@
-﻿namespace RequestApproval.Controllers
+﻿using RequestApproval.Controllers.InOuts;
+
+namespace RequestApproval.Controllers.Service
 {
     public interface IRequestApprovalService
     {
