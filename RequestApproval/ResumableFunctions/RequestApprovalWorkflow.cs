@@ -26,7 +26,7 @@ namespace RequestApproval.Controllers
             yield return WaitUserSubmitRequest();
 
             if (ManagerApprovalTaskId != default)
-                Console.WriteLine($"Request `{UserRequest.Id}` re-submitted.");
+                Console.WriteLine($"Req+uest `{UserRequest.Id}` re-submitted.");
 
             ManagerApprovalTaskId = _service.AskManagerApproval(UserRequest.Id);
             yield return WaitManagerApproval();
