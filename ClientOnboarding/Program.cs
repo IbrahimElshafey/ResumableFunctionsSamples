@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using ClientOnboarding.Services;
 using ResumableFunctions.AspNetService;
-using ResumableFunctions.Handler.InOuts;
+using ResumableFunctions.Handler.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 

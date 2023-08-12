@@ -1,4 +1,3 @@
-using RequestApproval.Controllers;
 using ResumableFunctions.AspNetService;
 using ResumableFunctions.Handler.Core;
 
@@ -9,16 +8,17 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddControllers()
     .AddResumableFunctions(
-    new SqlServerResumableFunctionsSettings(null, "RequestApprovalWaits")
-    .SetCurrentServiceUrl("https://localhost:7003"));
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+        new SqlServerResumableFunctionsSettings()
+        .SetCurrentServiceUrl("https://localhost:7099/")
+        .SetDllsToScan("ReferenceLibrary"));
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IRequestApprovalService, RequestApprovalService>();
-builder.Services.AddScoped<RequestApprovalWorkflow>();
+
 
 var app = builder.Build();
 app.UseResumableFunctions();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -32,4 +32,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+
 app.Run();
+

@@ -2,11 +2,10 @@
 using ClientOnboarding.Services;
 using ResumableFunctions.Handler;
 using ResumableFunctions.Handler.Attributes;
-using ResumableFunctions.Handler.InOuts;
+using ResumableFunctions.Handler.BaseUse;
 
 namespace ClientOnboarding.Workflow
 {
-    //from:https://tallyfy.com/workflow-examples/#onboarding
     public class ClientOnboardingWorkflow : ResumableFunctionsContainer
     {
         private  IClientOnboardingService _service;
@@ -20,9 +19,9 @@ namespace ClientOnboarding.Workflow
         internal async IAsyncEnumerable<Wait> StartClientOnboardingWorkflow()
         {
             yield return WaitUserRegistration();
-            OwnerTaskId = _service.AskOwnerToApproveClient(RegistrationResult.FormId);
 
-            yield return WaitOwnerApproveClient();
+            yield return OwnerApproveClient();
+
             if (OwnerApprovalInput.Decision is false)
             {
                 _service.InformUserAboutRejection(RegistrationForm.UserId);
@@ -30,7 +29,6 @@ namespace ClientOnboarding.Workflow
             else if (OwnerApprovalInput.Decision is true)
             {
                 _service.SendWelcomePackage(RegistrationForm.UserId);
-                ClientMeetingId = _service.SetupInitalMeetingAndAgenda(RegistrationForm.UserId);
 
                 yield return WaitMeetingResult();
                 Console.WriteLine(MeetingResult);
@@ -41,25 +39,37 @@ namespace ClientOnboarding.Workflow
 
         private MethodWait<RegistrationForm, RegistrationResult> WaitUserRegistration()
         {
-            return Wait<RegistrationForm, RegistrationResult>(_service.ClientFillsForm, "Wait User Registration")
-                            .MatchIf((regForm, regResult) => regResult.FormId > 0)
-                            .SetData((regForm, regResult) => RegistrationForm == regForm && RegistrationResult == regResult);
+            return 
+                Wait<RegistrationForm, RegistrationResult>(_service.ClientFillsForm, "Wait User Registration")
+                .MatchIf((regForm, regResult) => regResult.FormId > 0)
+                .AfterMatch((regForm, regResult) =>
+                {
+                    RegistrationForm = regForm;
+                    RegistrationResult = regResult;
+                });
         }
 
-        private MethodWait<OwnerApproveClientInput, OwnerApproveClientResult> WaitOwnerApproveClient()
+        private MethodWait<OwnerApproveClientInput, OwnerApproveClientResult> OwnerApproveClient()
         {
-            return Wait<OwnerApproveClientInput, OwnerApproveClientResult>(_service.OwnerApproveClient, "Wait Owner Approve Client")
-                            .MatchIf((approveClientInput, approveResult) => approveClientInput.TaskId == OwnerTaskId.Id)
-                            .SetData((approveClientInput, approveResult) => 
-                                OwnerTaskResult == approveResult && 
-                                OwnerApprovalInput == approveClientInput);
+            OwnerTaskId = _service.AskOwnerToApproveClient(RegistrationResult.FormId);
+            return 
+                Wait<OwnerApproveClientInput, OwnerApproveClientResult>(
+                        _service.OwnerApproveClient, "Wait Owner Approve Client")
+                .MatchIf((approveClientInput, approveResult) => approveClientInput.TaskId == OwnerTaskId.Id)
+                .AfterMatch((approveClientInput, approveResult) =>
+                {
+                    OwnerTaskResult = approveResult;
+                    OwnerApprovalInput = approveClientInput;
+                });
         }
 
         private MethodWait<int, MeetingResult> WaitMeetingResult()
         {
-            return Wait<int, MeetingResult>(_service.SendMeetingResult, "Wait Meeting Result")
-                               .MatchIf((mmetingId, meetingResult) => mmetingId == ClientMeetingId.MeetingId)
-                               .SetData((mmetingId, meetingResult) => MeetingResult == meetingResult);
+            ClientMeetingId = _service.SetupInitalMeetingAndAgenda(RegistrationForm.UserId);
+            return
+                Wait<int, MeetingResult>(_service.SendMeetingResult, "Wait Meeting Result")
+                .MatchIf((mmetingId, meetingResult) => mmetingId == ClientMeetingId.MeetingId)
+                .AfterMatch((mmetingId, meetingResult) => MeetingResult = meetingResult);
         }
 
         public RegistrationForm RegistrationForm { get; set; }

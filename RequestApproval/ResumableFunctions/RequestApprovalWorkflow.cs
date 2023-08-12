@@ -1,11 +1,38 @@
 ﻿using ResumableFunctions.Handler;
 using ResumableFunctions.Handler.Attributes;
-using ResumableFunctions.Handler.InOuts;
+using ResumableFunctions.Handler.BaseUse;
 
 namespace RequestApproval.Controllers
 {
     public class RequestApprovalWorkflow : ResumableFunctionsContainer
     {
+        [ResumableFunctionEntryPoint("RequestApprovalWorkflow.RequestApprovalFlow")]
+        internal async IAsyncEnumerable<Wait> RequestApprovalFlow()
+        {
+            yield return WaitUserSubmitRequest();
+
+            yield return WaitManagerApproval();
+
+            switch (ManagerApprovalResult.Decision)
+            {
+                case "Accept":
+                    _service.InformUserAboutAccept(UserRequest.Id);
+                    break;
+                case "Reject":
+                    _service.InformUserAboutReject(UserRequest.Id);
+                    break;
+                case "MoreInfo":
+                    _service.AskUserForMoreInfo(UserRequest.Id, ManagerApprovalResult.Message);
+                    yield return GoBackTo<Request, bool>(WaitSubmitRequest,
+                            (request, result) => request.Id == UserRequest.Id);
+                    break;
+                default:
+                    throw new ArgumentException("Allowed values for decision are one of(Accept,Reject,MoreInfo)");
+            }
+
+            await Task.Delay(100);
+            Console.WriteLine("RequestApprovalFlow Ended");
+        }
         private const string WaitSubmitRequest = "Wait User Submit Request";
         private IRequestApprovalService _service;
 
@@ -20,48 +47,21 @@ namespace RequestApproval.Controllers
 
 
 
-        [ResumableFunctionEntryPoint("RequestApprovalWorkflow.RequestApprovalFlow")]
-        internal async IAsyncEnumerable<Wait> RequestApprovalFlow()
-        {
-            yield return WaitUserSubmitRequest();
-
-            if (ManagerApprovalTaskId != default)
-                Console.WriteLine($"Req+uest `{UserRequest.Id}` re-submitted.");
-
-            ManagerApprovalTaskId = _service.AskManagerApproval(UserRequest.Id);
-            yield return WaitManagerApproval();
-
-            switch (ManagerApprovalResult.Decision)
-            {
-                case "Accept":
-                    _service.InformUserAboutAccept(UserRequest.Id);
-                    break;
-                case "Reject":
-                    _service.InformUserAboutReject(UserRequest.Id);
-                    break;
-                case "MoreInfo":
-                    _service.AskUserForMoreInfo(UserRequest.Id, ManagerApprovalResult.Message);
-                    yield return GoBackTo<Request, bool>(WaitSubmitRequest, (request, result) => request.Id == UserRequest.Id);
-                    break;
-                default: throw new ArgumentException("Allowed values for decision are one of(Accept,Reject,MoreInfo)");
-            }
-
-            await Task.Delay(100);
-            Console.WriteLine("RequestApprovalFlow Ended");
-        }
+        
 
         private Wait WaitUserSubmitRequest()
         {
             return Wait<Request, bool>(_service.UserSubmitRequest, WaitSubmitRequest)
                     .MatchIf((request, result) => request.Id > 0)
-                    .SetData((request, result) => UserRequest == request);
+                    .AfterMatch((request, result) => UserRequest = request);
         }
 
         private Wait WaitManagerApproval()
         {
+            ManagerApprovalTaskId = _service.AskManagerApproval(UserRequest.Id);
             return Wait<ApproveRequestArgs, int>(_service.ManagerApproval, "Wait Manager Approval")
                     .MatchIf((approveRequestArgs, approvalId) => approvalId > 0 && approveRequestArgs.TaskId == ManagerApprovalTaskId)
-                    .SetData((approveRequestArgs, approvalId) => ManagerApprovalResult == approveRequestArgs);
+                    .AfterMatch((approveRequestArgs, approvalId) => ManagerApprovalResult = approveRequestArgs);
         }
     }
 }
